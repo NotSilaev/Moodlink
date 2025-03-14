@@ -81,9 +81,14 @@ def getIndexValuesByPeriod(period: tuple[datetime.datetime, datetime.datetime], 
     if start_timestamp > end_timestamp:
         raise ValueError('start_timestamp cannot be higher then end_timestamp.')
 
+    hours_range = int((end_timestamp - start_timestamp).total_seconds() / 3600)
+
     index_hourly_values = dict()
 
-    all_day_index_updates: list[dict] = getLastIndexUpdates(limit=24)[::-1]
+    all_day_index_updates: list[dict] = getLastIndexUpdates(limit=hours_range)[::-1]
+    if all_day_index_updates[0]['updated_at'] is None:
+        return index_hourly_values
+
     for update in all_day_index_updates:
         index_hourly_values[update['updated_at']] = update['value']
 

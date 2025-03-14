@@ -68,6 +68,9 @@ async def listenToMessages(client) -> None:
                     level='INFO',
                     text=f"New message in {chat_title}: {event.text}"
                 )
+
+                await asyncio.sleep(3)
+
             except Exception as e:
                 await addLog(
                     level='ERROR',

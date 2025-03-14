@@ -1,4 +1,11 @@
+import sys
+sys.path.append('../../')
+
+from config import settings
+
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 import datetime
 
@@ -6,6 +13,11 @@ from index_api import getIndex
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_origin]
+)
 
 
 @app.get("/index/latest")

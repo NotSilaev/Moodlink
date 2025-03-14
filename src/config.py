@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     clickhouse_port: int
     clickhouse_secure: bool
 
+    # Web
+    frontend_origin: str
+
     class Config:
         env_file = Path(__file__).parent / '.env'
 

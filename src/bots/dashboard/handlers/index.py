@@ -70,23 +70,32 @@ async def command_history(event: Message | CallbackQuery) -> None:
     period = (start_timestamp, end_timestamp)
 
     index_period_values: dict = getIndexValuesByPeriod(period)
-    time_points: list[str] = [updated_at.hour for updated_at in index_period_values.keys()]
-    index_points: list[int] = index_period_values.values()
+    if index_period_values:
+        graph_created = True
 
-    index_history_graph_image_path: Path = makeIndexHistoryGraphImage(time_points, index_points)
-    index_history_graph_image = FSInputFile(str(index_history_graph_image_path))
+        time_points: list[str] = [updated_at.hour for updated_at in index_period_values.keys()]
+        index_points: list[int] = index_period_values.values()
 
-    caption_text = dedent(f'''
-        *📈 График движения индекса за последние 24 часа*
+        index_history_graph_image_path: Path = makeIndexHistoryGraphImage(time_points, index_points)
+        index_history_graph_image = FSInputFile(str(index_history_graph_image_path))
 
-        ⏰ Сформировано за период: с *{clean_start_timestamp}* до *{clean_end_timestamp}*
-    ''')
+        caption_text = dedent(f'''
+            *📈 График движения индекса за последние 24 часа*
 
-    kwargs = {
-        'photo': index_history_graph_image,
-        'caption': caption_text,
-        'parse_mode': 'Markdown'
-    }
+            ⏰ Сформировано за период: с *{clean_start_timestamp}* до *{clean_end_timestamp}*
+        ''')
+
+        kwargs = {
+            'photo': index_history_graph_image,
+            'caption': caption_text,
+            'parse_mode': 'Markdown'
+        }
+    else:
+        graph_created = False
+        kwargs = {
+            'text': '*📂 Индекс ещё ни разу не обновлялся.*',
+            'parse_mode': 'Markdown'
+        }
 
     if isinstance(event, Message):
         event_message = event
@@ -94,11 +103,13 @@ async def command_history(event: Message | CallbackQuery) -> None:
         event_message = event.message
         await event.answer()
 
-    message = await event_message.answer_photo(**kwargs)
-
-    # Remove graph image
-    if message and index_history_graph_image_path.exists():
-        os.remove(index_history_graph_image_path)
+    if graph_created:
+        message = await event_message.answer_photo(**kwargs)
+        # Remove graph image
+        if message and index_history_graph_image_path.exists():
+            os.remove(index_history_graph_image_path)
+    else:
+        message = await event_message.answer(**kwargs)
 
 
 @router.message(Command('alerts'))
